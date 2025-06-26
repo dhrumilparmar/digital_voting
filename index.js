@@ -96,7 +96,7 @@ async function createAuditLog(action, username, details, req) {
 
 // Routes
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 //signup route
@@ -120,7 +120,7 @@ app.post('/index', async (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'login.html'));
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 app.post('/login', async (req, res) => {
@@ -188,11 +188,11 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/voting', (req, res) => {
-    res.sendFile(path.join(__dirname, 'voting.html'));
+    res.sendFile(path.join(__dirname, 'public', 'voting.html'));
 });
 
 app.get('/update', (req, res) => {
-    res.sendFile(path.join(__dirname, 'update.html'));
+    res.sendFile(path.join(__dirname, 'public', 'update.html'));
 });
 
 app.post('/update-profile', async (req, res) => {
@@ -254,9 +254,8 @@ app.post('/vote', async (req, res) => {
     }
 });
 
-//  these routes after your existing routes
 app.get('/result', (req, res) => {
-    res.sendFile(path.join(__dirname, 'result.html'));
+    res.sendFile(path.join(__dirname, 'public', 'result.html'));
 });
 
 app.get('/election-results', async (req, res) => {
