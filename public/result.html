@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .winner-section {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: #c6f6d5;
+            border-radius: 8px;
+        }
+
+        .winner-title {
+            color: #2f855a;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .winner-name {
+            color: #234e52;
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        .stat-label {
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            height: 400px;
+        }
+
+        .back-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            background: #5a67d8;
+        }
+
+        .waiting-section {
+            text-align: center;
+            padding: 40px;
+            background: #ebf8ff;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .countdown {
+            font-size: 24px;
+            color: #2b6cb0;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="resultContainer" style="display: none;">
+        <div class="winner-section">
+            <div class="winner-title">Winner</div>
+            <div class="winner-name" id="winnerName">Loading...</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalVotes">0</div>
+                <div class="stat-label">Total Votes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="winningVotes">0</div>
+                <div class="stat-label">Winning Votes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="votingPercentage">0%</div>
+                <div class="stat-label">Voting Percentage</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="resultsChart"></canvas>
+        </div>
+
+        <a href="/login" class="back-btn">Back to Voting Page</a>
+    </div>
+
+    <div class="container" id="waitingMessage" style="display: none;">
+        <div class="waiting-section">
+            <h2>Results Not Available Yet</h2>
+            <p id="releaseMessage"></p>
+            <div class="countdown" id="countdown"></div>
+        </div>
+    </div>
+
+    <script>
+        async function loadResults() {
+            try {
+                const response = await fetch('/election-results');
+                const data = await response.json();
+
+                if (data.isBeforeRelease) {
+                    document.getElementById('waitingMessage').style.display = 'block';
+                    document.getElementById('resultContainer').style.display = 'none';
+                    document.getElementById('releaseMessage').textContent = data.message;
+                    
+                    // Optional: countdown
+                    const releaseDate = new Date('2025-05-28');
+                    setInterval(() => {
+                        const now = new Date();
+                        const distance = releaseDate - now;
+                        
+                        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        
+                        document.getElementById('countdown').innerHTML = 
+                            `Results will be available in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+                    }, 1000);
+                    
+                    return;
+                }
+
+                document.getElementById('waitingMessage').style.display = 'none';
+                document.getElementById('resultContainer').style.display = 'block';
+
+                // winner section
+                document.getElementById('winnerName').textContent = data.winner;
+                document.getElementById('totalVotes').textContent = data.totalVotes;
+                document.getElementById('winningVotes').textContent = data.winningVotes;
+                document.getElementById('votingPercentage').textContent = 
+                    `${((data.totalVotes / data.totalVoters) * 100).toFixed(1)}%`;
+
+                //chart
+                const ctx = document.getElementById('resultsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.results.map(r => r._id),
+                        datasets: [{
+                            label: 'Votes',
+                            data: data.results.map(r => r.count),
+                            backgroundColor: data.results.map(r => 
+                                r._id === data.winner ? 'rgba(72, 187, 120, 0.5)' : 'rgba(102, 126, 234, 0.5)'
+                            ),
+                            borderColor: data.results.map(r => 
+                                r._id === data.winner ? 'rgba(72, 187, 120, 1)' : 'rgba(102, 126, 234, 1)'
+                            ),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading results:', error);
+            }
+        }
+
+        // Load results when page loads
+        loadResults();
+    </script>
+</body>
+</html>

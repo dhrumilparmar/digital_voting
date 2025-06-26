@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Voting System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .welcome {
+            font-size: 24px;
+            color: #4a5568;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .candidate-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .candidate-card {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .candidate-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .candidate-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .candidate-info {
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+
+        .candidate-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .candidate-party {
+            font-size: 16px;
+            color: #718096;
+        }
+
+        .vote-button {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .vote-button:hover {
+            background-color: #5a67d8;
+        }
+
+        .vote-button:disabled {
+            background-color: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .tooltip {
+            display: none;
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 240px;
+            left: 100px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .candidate-image:hover .tooltip {
+            display: block;
+        }
+
+        #message {
+            text-align: center;
+            margin: 20px 0;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .success {
+            background-color: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .error {
+            background-color: #fed7d7;
+            color: #9b2c2c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Online Voting System</h1>
+    </div>
+
+    <div class="container">
+        <div class="content">
+            <div class="welcome">Welcome, <span id="user-welcome"></span>!</div>
+            <!-- Add this button where appropriate in your voting page -->
+            <div id="message"></div>
+            <div class="candidate-list">
+                <div class="candidate-card">
+                    <div class="candidate-image">
+                        <img src="https://logos-world.net/wp-content/uploads/2020/11/Deadpool-Logo.png" alt="Parmar Dhrumilsinh">
+                        <div class="tooltip">
+                            <strong>About:</strong> Progressive candidate with focus on technological advancement and innovation. Experience in public service and community development.
+                        </div>
+                    </div>
+                    <div class="candidate-info">
+                        <div class="candidate-name">Parmar Dhrumilsinh</div>
+                        <div class="candidate-party">Progressive Party</div>
+                    </div>
+                    <button class="vote-button vote-btn" data-candidate="Parmar Dhrumilsinh">Vote</button>
+                </div>
+
+                <div class="candidate-card">
+                    <div class="candidate-image">
+                        <img src="data:image/jpeg;base64,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" alt="Dayma Pruthviraj">
+                        <div class="tooltip">
+                            <strong>About:</strong> Conservative leader committed to traditional values and fiscal responsibility. Strong background in economic policy.
+                        </div>
+                    </div>
+                    <div class="candidate-info">
+                        <div class="candidate-name">Dayma Pruthviraj</div>
+                        <div class="candidate-party">Conservative Party</div>
+                    </div>
+                    <button class="vote-button vote-btn" data-candidate="Dayma Pruthviraj">Vote</button>
+                </div>
+
+                <div class="candidate-card">
+                    <div class="candidate-image">
+                        <img src="data:image/jpeg;base64,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" alt="Patel Meet">
+                        <div class="tooltip">
+                            <strong>About:</strong> Liberal candidate advocating for social justice and environmental protection. Experienced in environmental law.
+                        </div>
+                    </div>
+                    <div class="candidate-info">
+                        <div class="candidate-name">Patel Meet</div>
+                        <div class="candidate-party">Liberal Party</div>
+                    </div>
+                    <button class="vote-button" onclick="castVote('Patel Meet')">Vote</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get username from session storage
+            const username = sessionStorage.getItem('username');
+            if (!username) {
+                alert('Please login first');
+                window.location.href = '/login';
+                return;
+            }
+    
+            // Display username in welcome message
+            document.querySelector('.welcome').textContent = `Welcome, ${username}!`;
+    
+            // Add click event listeners to vote buttons
+            document.querySelectorAll('.vote-btn').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const candidateName = this.getAttribute('data-candidate');
+                    
+                    try {
+                        const response = await fetch('/vote', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                username: username,
+                                candidateName: candidateName
+                            })
+                        });
+    
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            alert('Vote cast successfully!');
+                            window.location.href = '/login';
+                        } else {
+                            alert(result.message || 'Failed to cast vote');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while voting');
+                    }
+                });
+            });
+        });
+    </script>
+    </body>
+</html>
+

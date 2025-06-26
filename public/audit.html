@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: #f7fafc;
+        }
+        .filters {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+        .action-LOGIN { color: #2b6cb0; }
+        .action-SIGNUP { color: #2f855a; }
+        .action-VOTE { color: #805ad5; }
+        .timestamp { color: #718096; }
+    </style>
+</head>
+<body>
+    <div class="filters">
+        <h2>Audit Log Filters</h2>
+        <select id="actionFilter">
+            <option value="">All Actions</option>
+            <option value="LOGIN">Login</option>
+            <option value="SIGNUP">Signup</option>
+            <option value="VOTE">Vote</option>
+            <option value="PROFILE_UPDATE">Profile Update</option>
+        </select>
+        <input type="text" id="usernameFilter" placeholder="Username">
+        <input type="date" id="startDate">
+        <input type="date" id="endDate">
+        <button onclick="searchLogs()">Search</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Action</th>
+                <th>Username</th>
+                <th>IP Address</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody id="logsTable"></tbody>
+    </table>
+
+    <script>
+        async function loadLogs(params = {}) {
+            try {
+                const queryString = new URLSearchParams(params).toString();
+                const response = await fetch(`/admin/audit-logs/search?${queryString}`);
+                const logs = await response.json();
+                
+                const tbody = document.getElementById('logsTable');
+                tbody.innerHTML = logs.map(log => `
+                    <tr>
+                        <td class="timestamp">${new Date(log.timestamp).toLocaleString()}</td>
+                        <td class="action-${log.action}">${log.action}</td>
+                        <td>${log.username}</td>
+                        <td>${log.ipAddress}</td>
+                        <td>${JSON.stringify(log.details)}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading logs:', error);
+            }
+        }
+
+        function searchLogs() {
+            const params = {
+                action: document.getElementById('actionFilter').value,
+                username: document.getElementById('usernameFilter').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value
+            };
+            loadLogs(params);
+        }
+
+        //initial logs
+        loadLogs();
+    </script>
+</body>
+</html>
